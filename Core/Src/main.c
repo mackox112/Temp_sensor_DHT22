@@ -73,11 +73,11 @@ void delay (uint16_t time)
 #define DHT22_PIN GPIO_PIN_4
 
 uint8_t RH1,RH2,TC1,TC2,CHECK;
-uint16_t SUM, TEMP;
+uint16_t SUM;
 uint8_t Presence;
 float tCelsius = 0;
 float tFahrenheit =0;
-float RH=0;
+float RH=0, TEMP=0;
 
 
 void SET_PIN_OUTPUT (GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
@@ -129,7 +129,7 @@ uint16_t DHT22_Check_response(void)
 		if (HAL_GPIO_ReadPin(DHT22_PORT, DHT22_PIN)) Response =1;
 		else Response = -1;
 
-//		while (HAL_GPIO_ReadPin(DHT22_PORT, DHT22_PIN)); // waiting for the pin to go low
+		while (HAL_GPIO_ReadPin(DHT22_PORT, DHT22_PIN)); // waiting for the pin to go low
 
 	}
 	return Response;
@@ -208,10 +208,8 @@ while (1)
 	  DHT22_Start();
 	 	  Presence = DHT22_Check_response();
 
-	 	  if (!Presence)
+	 	  if (Presence)
 	 	  {
-	 		  Error_Handler();
-	 	  }
 
 	 	  RH1 = DHT22_Read();
 	 	  RH2 = DHT22_Read();
@@ -224,7 +222,9 @@ while (1)
 
 	 	 if (SUM == ((RH1+RH2+TC1+TC2) & 0x00FF))
 	 	 {
-	 	 TEMP = ((TC1<<8)|TC2); RH = ((RH1<<8)|RH2); }
+	 	 TEMP = ((TC1<<8)|TC2)*0.1f;
+	 	 RH = ((RH1<<8)|RH2)*0.1f; }
+	 	  }
 
 	 	  HAL_Delay(200);
 
